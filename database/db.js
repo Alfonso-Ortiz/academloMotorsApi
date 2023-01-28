@@ -3,7 +3,7 @@ const { Sequelize } = require('sequelize');
 
 // !IGUALAMOS DB A UNA NUEVA BASE DE DATOS DÓNDE LE DAREMOS EL DIALECTO
 // !EL PUERTO, LOS DATOS DEL PGADMIN Y EL NOMBRE DE LA BASE DE DATOS
-// !CREADA EN EL PG ADMIN
+// !CREADA EN EL PG ADMINdejamo
 const db = new Sequelize({
   dialect: 'postgres',
   host: 'localhost',

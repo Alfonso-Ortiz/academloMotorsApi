@@ -5,128 +5,125 @@ const User = require('../models/user.model');
 //! ES IMPORTANTE USAR EL ASYNC - AWAIT
 
 exports.findAllUsers = async (req, res) => {
-  // !1. BUSCAMOS TODOS LOS USUARIOS, NO ES NECESARIO DESESTRUCTURAR
-  const users = await User.findAll({
-    // !2. BUSCAMOS LOS QUE SU STATUS SEA TRUE, ES DECIR AVAILABLE
-    where: {
-      status: true,
-    },
-  });
-  return res.status(200).json({
-    status: 'sucess',
-    message: 'The user has been found successfull',
-    users,
-  });
+  try {
+    // !1. BUSCAMOS TODOS LOS USUARIOS, NO ES NECESARIO DESESTRUCTURAR
+    const users = await User.findAll({
+      // !2. BUSCAMOS LOS QUE SU STATUS SEA TRUE, ES DECIR AVAILABLE
+      where: {
+        status: 'enabled',
+      },
+    });
+
+    // !3. Y ENVIAMOS LA RESPUESTA AL CLIENTE
+    return res.status(200).json({
+      status: 'sucess',
+      message: 'The users has been found successfully',
+      users,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      status: 'fail',
+      message: 'Internal Server Error',
+    });
+  }
 };
 
 exports.findUserById = async (req, res) => {
-  // !1. RECIBIMOS EL ID PASADO POR PARAMETROS
-  const { id } = req.params;
+  try {
+    // !importamos el middleware
+    const { user } = req;
 
-  // !2. BUSCAMOS EL USUARIO CON DICHO ID Y QUE SU STATUS SEA TRUE
-  const user = await User.findOne({
-    where: {
-      id,
-      status: true,
-    },
-  });
-
-  // !3. SI EL ID ES NULL O NO EXISTE ENVIAMOS ESTE ERROR
-  if (!user) {
-    return res.status(404).json({
-      status: 'error',
-      message: 'The user was not found',
+    // !4. SINO TODO ESTÁ CORRECTO ENVIAMOS LA RESPUESTA AL CLIENTE
+    res.status(200).json({
+      status: 'Sucess',
+      message: 'The user has been found successfully',
+      user,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      status: 'fail',
+      message: 'Internal Server Error',
     });
   }
-
-  // !4. SINO TODO ESTÁ CORRECTO ENVIAMOS LA RESPUESTA AL CLIENTE
-  return res.status(200).json({
-    status: 'sucess',
-    message: 'The user has been found successfull',
-    user,
-  });
 };
 
 exports.createUsers = async (req, res) => {
-  // !1. RECIBIMOS LA INFORMACIÓN QUE QUEREMOS RECIBIR Y QUE VIENE EN EL CUERPO
-  const { name, email, password } = req.body;
+  try {
+    // !1. RECIBIMOS LA INFORMACIÓN QUE QUEREMOS RECIBIR Y QUE VIENE EN EL CUERPO
+    const { name, email, password, role } = req.body;
 
-  // !2. CREAMOS EL USUARION CON LA INFORMACIÓN RECIBIDA POR LA REQ
-  const newUser = await User.create({
-    name: name.toLowerCase(),
-    email: email.toLowerCase(),
-    password,
-  });
+    // !2. CREAMOS EL USUARION CON LA INFORMACIÓN RECIBIDA POR LA REQ
+    const newUser = await User.create({
+      name: name.toLowerCase(),
+      email: email.toLowerCase(),
+      password,
+      role,
+    });
 
-  // !3. Y ENVIAMOS LA RESPUESTA AL CLIENTE
-  res.status(201).json({
-    status: 'sucess',
-    message: 'The user has been create successfull',
-    newUser,
-  });
+    // !3. Y ENVIAMOS LA RESPUESTA AL CLIENTE
+    return res.status(200).json({
+      status: 'sucess',
+      message: 'The user has been create successfully',
+      newUser,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      status: 'fail',
+      message: 'Internal Server Error',
+    });
+  }
 };
 
 exports.updateUsers = async (req, res) => {
-  // !1. OBTENGO EL ID
-  const { id } = req.params;
+  try {
+    // !importamos el middleware
+    const { user } = req;
 
-  // !2. OBTENER INFORMACIÓN A ACTUALIZAR
-  const { name, email, password } = req.body;
+    // !2. OBTENER INFORMACIÓN A ACTUALIZAR
+    const { name, email } = req.body;
 
-  // !3. BUSCAMOS EL PRODUCTO A ACTUALIZAR
-  const user = await User.findOne({
-    id,
-  });
+    // !5. SI TODO SALIO BIEN, ACTUALIZAMOS EL USUARIO
+    const updatedUser = await user.update({
+      name: name,
+      email: email,
+    });
 
-  // !4. SI NO EXISTE PRODUCTO ENVIAMOS ERROR
-  if (!user) {
-    return res.status(404).json({
-      status: 'error',
-      message: 'The user was not found',
+    // !6. ENVIAMOS LA RESPUESTA AL CLIENTE
+    return res.status(200).json({
+      status: 'sucess',
+      message: 'The user has been successfully edited ',
+      updatedUser,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      status: 'fail',
+      message: 'Internal Server Error',
     });
   }
-
-  // !5. SI TODO SALIO BIEN, ACTUALIZAMOS EL PRODUCTO
-  const updatedUser = await user.update({
-    name: name.toLowerCase(),
-    email: email.toLowerCase(),
-    password,
-  });
-
-  // !6. ENVIAMOS LA RESPUESTA AL CLIENTE
-  return res.status(200).json({
-    status: 'sucess',
-    message: 'The user has been successfull edited ',
-    updatedUser,
-  });
 };
 
 exports.deleteUsers = async (req, res) => {
-  // !1. OBTENGO EL ID DE LA REQ.PARAMS
-  const { id } = req.params;
+  try {
+    // !importamos el middleware
+    const { user } = req;
 
-  // !2. BUSCAR EL PRODUCTO A ELIMINAR
-  const deleteUser = await User.findOne({
-    where: {
-      id,
-      status: true,
-    },
-  });
+    // !4. ACTUALIZAR EL ESTADO DEL USUARIO A FALSE
+    await user.update({ status: false });
 
-  // !3. ENVIAR UN ERROR SI EL PRODUCTO NO SE ENCUENTRA
-  if (!deleteUser) {
-    return res.status(404).json({
-      status: 'error',
-      message: 'The user was not found',
+    // !5. ENVIAR LA RESPUESTA AL CLIENTE
+    return res.status(200).json({
+      status: 'sucess',
+      message: 'The user has been deleted successfully',
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      status: 'fail',
+      message: 'Internal Server Error',
     });
   }
-
-  // !4. ACTUALIZAR EL ESTADO DEL PRODUCTO A FALSE
-  await deleteUser.update({ status: false });
-
-  // !5. ENVIAR LA RESPUESTA AL CLIENTE
-  return res.status(200).json({
-    status: 'sucess',
-    message: 'The user has been successfull removed',
-  });
 };

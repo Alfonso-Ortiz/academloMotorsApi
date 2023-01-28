@@ -7,6 +7,7 @@ const { usersRouter } = require('../routes/users.routes');
 const { repairsRouter } = require('../routes/repairs.routes');
 // !IMPORTAMOS LA BASE DE DATOS CREADA EN LA CARPETA DATABASE
 const { db } = require('../database/db');
+const morgan = require('morgan');
 
 // !1. CREAMOS UNA CLASE
 
@@ -20,7 +21,7 @@ class Server {
     // !DEFINIMOS LOS PATHS DE NUESTRA APLICACIÓN
     this.paths = {
       users: '/api/v1/users',
-      repairs: 'api/v1/repairs',
+      repairs: '/api/v1/repairs',
     };
 
     // !LLAMO EL METODO DE CONEXION A LA BASE DE DATOS
@@ -35,6 +36,10 @@ class Server {
 
   // !MIDDLEWARES
   middlewares() {
+    if (process.env.NODE_ENV === 'development') {
+      this.app.use(morgan('dev'));
+    }
+
     // !UTILIZAMOS LAS CORS PARA PERMITIR ACCESSO A LA API
     this.app.use(cors());
     // !UTILIZAMOS EXPRESS.JSON PARA PARSEAR EL BODY DE LA REQUEST

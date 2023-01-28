@@ -1,4 +1,5 @@
 // !importamos el modelo
+const { validRepairExists } = require('../middlewares/repair.middleware');
 const Repair = require('../models/repairs.model');
 
 // !ACÁ CREAMOS LOS METODOS QUE USAREMOS TANTO PARA PEDIR, ENVIAR
@@ -6,128 +7,122 @@ const Repair = require('../models/repairs.model');
 // !ROUTES
 
 exports.findAllRepairs = async (req, res) => {
-  // !1. BUSCAMOS TODOS LAS REPAIRS, NO ES NECESARIO DESESTRUCTURAR
-  const repairs = await Repair.findAll({
-    // !2. BUSCAMOS LOS QUE SU STATUS SEA TRUE, ES DECIR AVAILABLE
-    where: {
-      status: true,
-    },
-  });
+  try {
+    // !1. BUSCAMOS TODOS LAS REPAIRS, NO ES NECESARIO DESESTRUCTURAR
+    const repairs = await Repair.findAll({
+      // !2. BUSCAMOS LOS QUE SU STATUS SEA TRUE, ES DECIR AVAILABLE
+      where: {
+        status: 'pending',
+      },
+    });
 
-  // !3. Y ENVIAMOS LA RESPUESTA AL CLIENTE
-  return res.status(200).json({
-    status: 'sucess',
-    message: 'The repairs has been found successfull',
-    repairs,
-  });
+    // !3. Y ENVIAMOS LA RESPUESTA AL CLIENTE
+    return res.status(200).json({
+      status: 'sucess',
+      message: 'The repairs has been found successfully',
+      repairs,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      status: 'fail',
+      message: 'Internal Server Error',
+    });
+  }
 };
 
 exports.findRepairById = async (req, res) => {
-  // !1. RECIBIMOS EL ID PASADO POR PARAMETROS
-  const { id } = req.params;
+  try {
+    // !importamos el middleware
+    const { repair } = req;
 
-  // !2. BUSCAMOS EL REPAIR CON DICHO ID Y QUE SU STATUS SEA TRUE
-  const repair = await Repair.findOne({
-    where: {
-      id,
-      status: true,
-    },
-  });
-
-  // !3. SI EL ID ES NULL O NO EXISTE ENVIAMOS ESTE ERROR
-  if (!repair) {
-    return res.status(404).json({
-      status: 'error',
-      message: 'The repair was not found',
+    // !4. SINO TODO ESTÁ CORRECTO ENVIAMOS LA RESPUESTA AL CLIENTE
+    return res.status(200).json({
+      status: 'sucess',
+      message: 'The repair has been found successfully',
+      repair,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      status: 'fail',
+      message: 'Internal Server Error',
     });
   }
-
-  // !4. SINO TODO ESTÁ CORRECTO ENVIAMOS LA RESPUESTA AL CLIENTE
-  return res.status(200).json({
-    status: 'sucess',
-    message: 'The repair has been found successfull',
-  });
 };
 
 exports.createRepair = async (req, res) => {
-  // !1. RECIBIMOS LA INFORMACIÓN QUE QUEREMOS RECIBIR Y QUE VIENE EN EL CUERPO
-  const { date, userId } = req.body;
+  try {
+    // !1. RECIBIMOS LA INFORMACIÓN QUE QUEREMOS RECIBIR Y QUE VIENE EN EL CUERPO
+    const { date, userId } = req.body;
 
-  // !2. CREAMOS EL REPAIR CON LA INFORMACIÓN RECIBIDA POR LA REQ
-  const newRepair = await Repair.create({
-    date,
-    userId,
-  });
+    // !2. CREAMOS EL REPAIR CON LA INFORMACIÓN RECIBIDA POR LA REQ
+    const newRepair = await Repair.create({
+      date,
+      userId,
+    });
 
-  // !3. Y ENVIAMOS LA RESPUESTA AL CLIENTE
-  res.status(201).json({
-    status: 'sucess',
-    message: 'The repair has been created successfull',
-    newRepair,
-  });
+    // !3. Y ENVIAMOS LA RESPUESTA AL CLIENTE
+    return res.status(201).json({
+      status: 'sucess',
+      message: 'The repair has been created successfully',
+      newRepair,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      status: 'fail',
+      message: 'Internal Server Error',
+    });
+  }
 };
 
 exports.updateRepair = async (req, res) => {
-  // !1. OBTENGO EL ID
-  const { id } = req.params;
+  try {
+    // !importamos el modelo
+    const { repair } = req;
 
-  // !2. OBTENER INFORMACIÓN A ACTUALIZAR
-  const { date, userId } = req.body;
+    // !OBTENER INFORMACIÓN A ACTUALIZAR
+    const { status } = req.body;
 
-  // !3. BUSCAMOS EL PRODUCTO A ACTUALIZAR
-  const repair = await Repair.findOne({
-    id,
-  });
+    // !SI TODO SALIO BIEN, ACTUALIZAMOS EL PRODUCTO
+    const updatedRepair = await repair.update({
+      status,
+    });
 
-  // !4. SI NO EXISTE PRODUCTO ENVIAMOS ERROR
-  if (!repair) {
-    return res.status(404).json({
-      status: 'error',
-      message: 'The repair was not found',
+    // !ENVIAMOS LA RESPUESTA AL CLIENTE
+    return res.status(200).json({
+      status: 'Sucess',
+      message: 'The repair has been successfully edited ',
+      updatedRepair,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      status: 'fail',
+      message: 'Internal Server Error',
     });
   }
-
-  // !5. SI TODO SALIO BIEN, ACTUALIZAMOS EL PRODUCTO
-  const updatedRepair = await repair.update({
-    date,
-    userId,
-  });
-
-  // !6. ENVIAMOS LA RESPUESTA AL CLIENTE
-  return res.status(200).json({
-    status: 'sucess',
-    message: 'The repair has been successfull edited',
-    updatedRepair,
-  });
 };
 
 exports.deleteRepair = async (req, res) => {
-  // !1. OBTENGO EL ID DE LA REQ.PARAMS
-  const { id } = req.params;
+  try {
+    // !importamos el middleware
+    const { repair } = req;
 
-  // !2. BUSCAR EL PRODUCTO A ELIMINAR
-  const deleteRepair = await Repair.findOne({
-    where: {
-      id,
-      status: true,
-    },
-  });
+    // !ACTUALIZAR EL ESTADO DEL PRODUCTO A FALSE
+    await repair.update({ status: 'cancelled' });
 
-  // !3. ENVIAR UN ERROR SI EL PRODUCTO NO SE ENCUENTRA
-  if (!deleteRepair) {
-    return res.status(404).json({
-      status: 'error',
-      message: 'The repair was not found',
+    // !ENVIAR LA RESPUESTA AL CLIENTE
+    return res.status(200).json({
+      status: 'sucess',
+      message: 'The repair has been successfully removed',
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      status: 'fail',
+      message: 'Internal Server Error',
     });
   }
-
-  // !4. ACTUALIZAR EL ESTADO DEL PRODUCTO A FALSE
-  await deleteRepair.update({ status: false });
-  //await product.destroy();
-
-  // !5. ENVIAR LA RESPUESTA AL CLIENTE
-  return res.status(200).json({
-    status: 'sucess',
-    message: 'The repair has been successfull removed',
-  });
 };
