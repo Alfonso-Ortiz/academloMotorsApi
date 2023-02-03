@@ -25,6 +25,11 @@ const User = db.define('user', {
     type: DataTypes.ENUM('client', 'employee'),
     allowNull: false,
   },
+  // modelo creado para mostrar la fecha en la que se actualizo la contraseña
+  passwordChangedAt: {
+    type: DataTypes.DATE,
+    allowNull: true,
+  },
   status: {
     type: DataTypes.STRING,
     allowNull: false,

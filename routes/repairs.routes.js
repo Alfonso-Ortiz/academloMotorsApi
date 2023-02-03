@@ -10,6 +10,7 @@ const {
   updateRepair,
   deleteRepair,
 } = require('../controllers/repairs.controllers');
+const { protect } = require('../middlewares/auth.middleware');
 const { validRepairExists } = require('../middlewares/repair.middleware');
 const { validateFields } = require('../middlewares/validateField.middleware');
 
@@ -32,8 +33,14 @@ router.get('/:id', validRepairExists, findRepairById);
 // !el controlador de productos que se llama createRepair
 router.post(
   '',
-  [check('date', 'Date is require').not().isEmpty()],
-  validateFields,
+  [
+    check('date', 'Date is require').not().isEmpty(),
+    check('motorsNumber', 'MotorsNumber is require').not().isEmpty(),
+    check('description', 'Description is require').not().isEmpty(),
+    validateFields,
+    protect,
+  ],
+
   createRepair
 );
 

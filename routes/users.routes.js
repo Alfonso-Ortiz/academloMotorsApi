@@ -3,13 +3,12 @@ const { check } = require('express-validator');
 const {
   findAllUsers,
   findUserById,
-  createUsers,
-  updateUsers,
   deleteUsers,
+  updateUsers,
 } = require('../controllers/users.controllers');
 const {
   validUserExists,
-  validEmailExists,
+  updatePassword,
 } = require('../middlewares/user.middleware');
 const { validateFields } = require('../middlewares/validateField.middleware');
 
@@ -19,21 +18,24 @@ router.get('', findAllUsers);
 
 router.get('/:id', validUserExists, findUserById);
 
-router.post(
-  '',
-  [
-    check('name', 'Name is require').not().isEmpty(),
-    check('email', 'Email is require').not().isEmpty(),
-    check('email', 'Email has to be a correct format').isEmail(),
-    check('password', 'Password is require').not().isEmpty(),
-    check('role', 'Role is require').not().isEmpty(),
-    validateFields,
-    validEmailExists,
-  ],
-  createUsers
-);
+router.patch('/:id', [
+  check('name', 'Name is require').not().isEmpty(),
+  check('email', 'Email is require').not().isEmpty(),
+  validateFields,
+  validUserExists,
+  updateUsers,
+]);
 
-router.patch('/:id', validUserExists, updateUsers);
+router.patch(
+  '/password/:id',
+  [
+    check('currentPassword', 'Current password is require').not().isEmpty(),
+    check('newPassword', 'New password is require').not().isEmpty(),
+    validateFields,
+    validUserExists,
+  ],
+  updatePassword
+);
 
 router.delete('/:id', validUserExists, deleteUsers);
 

@@ -1,6 +1,6 @@
 // !importamos el modelo
-const catchAsync = require('../helpers/catchAsync');
 const User = require('../models/user.model');
+const catchAsync = require('../helpers/catchAsync');
 
 //! IMPORTANTE!!! TODOS ESTOS CONTROLADORES SE EJECUTAN DE MODO ASINCRONO, POR LO QUE
 //! ES IMPORTANTE USAR EL ASYNC - AWAIT
@@ -16,9 +16,14 @@ exports.findAllUsers = catchAsync(async (req, res) => {
 
   // !3. Y ENVIAMOS LA RESPUESTA AL CLIENTE
   return res.status(200).json({
-    status: 'sucess',
+    status: 'Success',
     message: 'Users has been found successfully',
-    users,
+    users: {
+      id: users.id,
+      name: users.name,
+      email: users.email,
+      role: users.role,
+    },
   });
 });
 
@@ -28,50 +33,31 @@ exports.findUserById = catchAsync(async (req, res) => {
 
   // !4. SINO TODO ESTÁ CORRECTO ENVIAMOS LA RESPUESTA AL CLIENTE
   res.status(200).json({
-    status: 'Sucess',
+    status: 'Success',
     message: 'User has been found successfully',
-    user,
-  });
-});
-
-exports.createUsers = catchAsync(async (req, res) => {
-  // !1. RECIBIMOS LA INFORMACIÓN QUE QUEREMOS RECIBIR Y QUE VIENE EN EL CUERPO
-  const { name, email, password, role } = req.body;
-
-  // !2. CREAMOS EL USUARION CON LA INFORMACIÓN RECIBIDA POR LA REQ
-  const newUser = await User.create({
-    name: name.toLowerCase(),
-    email: email.toLowerCase(),
-    password,
-    role,
-  });
-
-  // !3. Y ENVIAMOS LA RESPUESTA AL CLIENTE
-  return res.status(200).json({
-    status: 'sucess',
-    message: 'User has been create successfully',
-    newUser,
+    user: {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    },
   });
 });
 
 exports.updateUsers = catchAsync(async (req, res) => {
+  // ! OBTENER INFORMACIÓN A ACTUALIZAR
+  const { name, email } = req.body;
+
   // !importamos el middleware
   const { user } = req;
 
-  // !2. OBTENER INFORMACIÓN A ACTUALIZAR
-  const { name, email } = req.body;
+  // ! SI TODO SALIO BIEN, ACTUALIZAMOS EL USUARIO
+  await user.update({ name, email });
 
-  // !5. SI TODO SALIO BIEN, ACTUALIZAMOS EL USUARIO
-  const updatedUser = await user.update({
-    name,
-    email,
-  });
-
-  // !6. ENVIAMOS LA RESPUESTA AL CLIENTE
+  // ! ENVIAMOS LA RESPUESTA AL CLIENTE
   return res.status(200).json({
-    status: 'sucess',
+    status: 'Success',
     message: 'User has been successfully edited ',
-    updatedUser,
   });
 });
 
@@ -84,7 +70,7 @@ exports.deleteUsers = catchAsync(async (req, res) => {
 
   // !5. ENVIAR LA RESPUESTA AL CLIENTE
   return res.status(200).json({
-    status: 'sucess',
+    status: 'Success',
     message: 'User has been deleted successfully',
   });
 });

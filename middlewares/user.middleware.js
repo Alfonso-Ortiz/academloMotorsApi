@@ -1,6 +1,7 @@
 const User = require('../models/user.model');
 const AppError = require('../helpers/appError');
 const catchAsync = require('../helpers/catchAsync');
+const bcrypt = require('bcryptjs');
 
 exports.validUserExists = catchAsync(async (req, res, next) => {
   // !1. RECIBIMOS EL ID PASADO POR PARAMETROS
@@ -41,8 +42,37 @@ exports.validEmailExists = catchAsync(async (req, res, next) => {
   }
 
   if (user) {
-    return next(new AppError('User already exists', 400));
+    return next(new AppError('User email already exists', 400));
   }
 
   next();
+});
+
+exports.updatePassword = catchAsync(async (req, res, next) => {
+  // recibimos el usuario validado en el middleware
+  const { user } = req;
+
+  // recibimos por el body la contraseña vieja que se va a comparar y la contraseña nueva
+  const { currentPassword, newPassword } = req.body;
+
+  // comparamos las contraseñas con el bcrypt, que la actual sea la que está en al base de datos
+  if (!(await bcrypt.compare(currentPassword, user.password))) {
+    return next(new AppError('Incorrect password', 401));
+  }
+
+  // encriptamos la nueva contraseña
+  const salt = await bcrypt.genSalt(10);
+  const encriptedPassword = await bcrypt.hash(newPassword, salt);
+
+  // actualizamos la contraseña
+  await user.update({
+    password: encriptedPassword,
+    passwordChangedAt: new Date(),
+  });
+
+  // enviamos la respuesta
+  res.status(200).json({
+    status: 'Success',
+    message: 'Password was updated successfully',
+  });
 });

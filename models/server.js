@@ -5,9 +5,13 @@ const cors = require('cors');
 // !IMPORTAMOS LAS RUTAS QUE VIENEN DE ROUTES
 const { usersRouter } = require('../routes/users.routes');
 const { repairsRouter } = require('../routes/repairs.routes');
+const { authRouter } = require('../routes/auth.routes');
+
 // !IMPORTAMOS LA BASE DE DATOS CREADA EN LA CARPETA DATABASE
 const { db } = require('../database/db');
 const morgan = require('morgan');
+const globalErrorHandler = require('../controllers/error.controller');
+const AppError = require('../helpers/appError');
 
 // !1. CREAMOS UNA CLASE
 
@@ -22,6 +26,7 @@ class Server {
     this.paths = {
       users: '/api/v1/users',
       repairs: '/api/v1/repairs',
+      auth: '/api/v1/auth',
     };
 
     // !LLAMO EL METODO DE CONEXION A LA BASE DE DATOS
@@ -52,6 +57,15 @@ class Server {
     this.app.use(this.paths.users, usersRouter);
     // !utilizar las rutas de repairs
     this.app.use(this.paths.repairs, repairsRouter);
+
+    this.app.use(this.paths.auth, authRouter);
+
+    this.app.all('*', (req, res, next) => {
+      return next(
+        new AppError(`Can't find ${req.originalUrl} on this server!`, 404)
+      );
+    });
+    this.app.use(globalErrorHandler);
   }
 
   // !CONEXIÓN A LA BASE DE DATOS
