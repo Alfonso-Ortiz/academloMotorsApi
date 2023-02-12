@@ -1,5 +1,9 @@
 // !IMPORTAMOS EXPRESS
 const express = require('express');
+const ratelimit = require('express-rate-limit');
+const helmet = require('helmet');
+const xss = require('xss-clean');
+const hpp = require('hpp');
 // !IMPORTAMOS LAS CORS PARA PERMITIR ACCESO A LA API
 const cors = require('cors');
 // !IMPORTAMOS LAS RUTAS QUE VIENEN DE ROUTES
@@ -12,6 +16,7 @@ const { db } = require('../database/db');
 const morgan = require('morgan');
 const globalErrorHandler = require('../controllers/error.controller');
 const AppError = require('../helpers/appError');
+const initModel = require('./initModels');
 
 // !1. CREAMOS UNA CLASE
 
@@ -22,11 +27,17 @@ class Server {
     // !DEFINIMOS EL PUERTO QUE LO TENEMOS EN LOS ENVIROMENTS
     this.port = process.env.PORT || 3000;
 
+    this.limiter = ratelimit({
+      max: 100,
+      windowMs: 60 * 60 * 1000,
+      message: 'Too many request from this IP, please try again then',
+    });
+
     // !DEFINIMOS LOS PATHS DE NUESTRA APLICACIÓN
     this.paths = {
-      users: '/api/v1/users',
-      repairs: '/api/v1/repairs',
       auth: '/api/v1/auth',
+      repairs: '/api/v1/repairs',
+      users: '/api/v1/users',
     };
 
     // !LLAMO EL METODO DE CONEXION A LA BASE DE DATOS
@@ -41,9 +52,17 @@ class Server {
 
   // !MIDDLEWARES
   middlewares() {
+    this.app.use(helmet());
+
+    this.app.use(xss());
+
+    this.app.use(hpp());
+
     if (process.env.NODE_ENV === 'development') {
       this.app.use(morgan('dev'));
     }
+
+    this.app.use('/api/v1', this.limiter);
 
     // !UTILIZAMOS LAS CORS PARA PERMITIR ACCESSO A LA API
     this.app.use(cors());
@@ -71,18 +90,21 @@ class Server {
   // !CONEXIÓN A LA BASE DE DATOS
   database() {
     db.authenticate()
-      .then(() => console.log('Database authenticated'))
+      .then(() => console.log('Database authenticated😁'))
       .catch(error => console.log(error));
 
+    // Relaciones
+    initModel();
+
     db.sync()
-      .then(() => console.log('Database synced'))
+      .then(() => console.log('Database synced😁'))
       .catch(error => console.log(error));
   }
 
   // !METODO PARA ESCUCHAR SOLICITUDES POR EL PUERTO
   listen() {
     this.app.listen(this.port, () => {
-      console.log(`Server is running on port ${this.port}`);
+      console.log(`Server is running on port ${this.port}😁`);
     });
   }
 }

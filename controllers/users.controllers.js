@@ -8,6 +8,7 @@ const catchAsync = require('../helpers/catchAsync');
 exports.findAllUsers = catchAsync(async (req, res) => {
   // !1. BUSCAMOS TODOS LOS USUARIOS, NO ES NECESARIO DESESTRUCTURAR
   const users = await User.findAll({
+    attributes: ['id', 'name', 'email', 'role'],
     // !2. BUSCAMOS LOS QUE SU STATUS SEA TRUE, ES DECIR AVAILABLE
     where: {
       status: 'enabled',
@@ -18,12 +19,7 @@ exports.findAllUsers = catchAsync(async (req, res) => {
   return res.status(200).json({
     status: 'Success',
     message: 'Users has been found successfully',
-    users: {
-      id: users.id,
-      name: users.name,
-      email: users.email,
-      role: users.role,
-    },
+    users,
   });
 });
 
@@ -52,12 +48,15 @@ exports.updateUsers = catchAsync(async (req, res) => {
   const { user } = req;
 
   // ! SI TODO SALIO BIEN, ACTUALIZAMOS EL USUARIO
-  await user.update({ name, email });
+  await user.update({
+    name: name.toLowerCase(),
+    email: email.toLowerCase(),
+  });
 
   // ! ENVIAMOS LA RESPUESTA AL CLIENTE
   return res.status(200).json({
     status: 'Success',
-    message: 'User has been successfully edited ',
+    message: 'User has been updated successfully ',
   });
 });
 

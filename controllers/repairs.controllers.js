@@ -6,9 +6,10 @@ const Repair = require('../models/repairs.model');
 // !EDITAR O ELIMINAR INFORMACIÓN, METODOS QUE EXPORTAREMOS A LAS
 // !ROUTES
 
-exports.findAllRepairs = catchAsync(async (req, res) => {
+exports.findAllRepairs = catchAsync(async (req, res, next) => {
   // !1. BUSCAMOS TODOS LAS REPAIRS, NO ES NECESARIO DESESTRUCTURAR
   const repairs = await Repair.findAll({
+    attributes: { exclude: ['createdAt', 'updatedAt', 'status'] },
     // !2. BUSCAMOS LOS QUE SU STATUS SEA TRUE, ES DECIR AVAILABLE
     where: {
       status: 'pending',
@@ -23,7 +24,7 @@ exports.findAllRepairs = catchAsync(async (req, res) => {
   });
 });
 
-exports.findRepairById = catchAsync(async (req, res) => {
+exports.findRepairById = catchAsync(async (req, res, next) => {
   // !importamos el middleware
   const { repair } = req;
 
@@ -35,7 +36,7 @@ exports.findRepairById = catchAsync(async (req, res) => {
   });
 });
 
-exports.createRepair = catchAsync(async (req, res) => {
+exports.createRepair = catchAsync(async (req, res, next) => {
   // !1. RECIBIMOS LA INFORMACIÓN QUE QUEREMOS RECIBIR Y QUE VIENE EN EL CUERPO
   const { date, userId, motorsNumber, description } = req.body;
 
@@ -55,27 +56,24 @@ exports.createRepair = catchAsync(async (req, res) => {
   });
 });
 
-exports.updateRepair = catchAsync(async (req, res) => {
-  // !importamos el modelo
-  const { repair } = req;
-
+exports.updateRepair = catchAsync(async (req, res, next) => {
   // !OBTENER INFORMACIÓN A ACTUALIZAR
   const { status } = req.body;
 
+  // !importamos el modelo
+  const { repair } = req;
+
   // !SI TODO SALIO BIEN, ACTUALIZAMOS EL PRODUCTO
-  const updatedRepair = await repair.update({
-    status,
-  });
+  await repair.update({ status });
 
   // !ENVIAMOS LA RESPUESTA AL CLIENTE
   return res.status(200).json({
     status: 'Success',
-    message: 'The repair has been successfully edited ',
-    updatedRepair,
+    message: 'The repair has been updated successfully ',
   });
 });
 
-exports.deleteRepair = catchAsync(async (req, res) => {
+exports.deleteRepair = catchAsync(async (req, res, next) => {
   // !importamos el middleware
   const { repair } = req;
 

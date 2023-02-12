@@ -28,15 +28,51 @@ exports.protect = catchAsync(async (req, res, next) => {
   // verificar si el usuario existe
   const user = await User.findOne({
     id: decoded.id,
-    status: true,
+    status: 'enabled',
   });
 
-  if (!user) {
+  if (user === 'disabled') {
     return next(
       new AppError('Owner of this token it not longer available', 401)
     );
   }
 
   //verificar si el usuario ha cambiado al contraseña después enviado el token
+  if (user.passwordChangedAt) {
+    const changedTimeStamp = parseInt(
+      user.passwordChangedAt.getTime() / 1000,
+      10
+    );
+
+    if (decoded.iat < changedTimeStamp) {
+      return next(
+        new AppError('User recently changed password, please login again', 401)
+      );
+    }
+  }
+
+  req.sessionUser = user;
   next();
 });
+
+exports.protectAccountOwner = catchAsync(async (req, res, next) => {
+  const { user, sessionUser } = req;
+
+  if (user.id !== sessionUser.id) {
+    return next(new AppError('You do not own this account', 401));
+  }
+
+  next();
+});
+
+exports.restricTo = (...roles) => {
+  return (req, res, next) => {
+    if (!roles.includes(req.sessionUser.role)) {
+      return next(
+        new AppError('You do not have permission to perfom this action.!', 403)
+      );
+    }
+
+    next();
+  };
+};

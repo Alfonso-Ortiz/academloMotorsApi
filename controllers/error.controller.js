@@ -1,12 +1,13 @@
 const AppError = require('../helpers/appError');
 
-const handleCastError22P02 = () => {
-  const message = 'Some type of data send does not match was expected';
-  return new AppError(message, 400);
-};
+const handleCastError22P02 = () =>
+  new AppError('Some type of data send does not match was expected', 400);
 
 const handleJWTError = () =>
   new AppError('Invalid token. Please login again!', 401);
+
+const habdleJWTExpiredError = () =>
+  new AppError('Your token has expired, please login again', 401);
 
 const sendErroDev = (err, res) => {
   res.status(err.statusCode).json({
@@ -24,7 +25,7 @@ const sendErroProd = (err, res) => {
       message: err.message,
     });
   } else {
-    console.error('ERROR', err);
+    console.error('ERROR 🧨', err);
     res.status(500).json({
       status: 'Fail',
       message: 'Something went wrong',
@@ -47,13 +48,16 @@ const globalErrorHandler = (err, req, res, next) => {
     let error = { ...err };
 
     if (!error.parent?.code) {
-      error - err;
+      error = err;
     }
 
     if (error.parent?.code === '22P02') error = handleCastError22P02(error);
 
     if (error.name === 'JsonWebTokenError') error = handleJWTError(error);
     sendErroProd(error, res);
+
+    if (error.name === 'TokenExpiredError')
+      error = habdleJWTExpiredError(error);
   }
 };
 

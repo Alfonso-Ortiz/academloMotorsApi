@@ -1,6 +1,11 @@
 const { Router } = require('express');
 const { check } = require('express-validator');
-const { createUsers, login } = require('../controllers/auth.controller');
+const {
+  createUsers,
+  login,
+  renewToken,
+} = require('../controllers/auth.controller');
+const { protect } = require('../middlewares/auth.middleware');
 const {
   validEmailExists,
   validEmailExistsLogin,
@@ -16,7 +21,6 @@ router.post(
     check('email', 'Email is require').not().isEmpty(),
     check('email', 'Email has to be a correct format').isEmail(),
     check('password', 'Password is require').not().isEmpty(),
-    check('role', 'Role is require').not().isEmpty(),
     validateFields,
     validEmailExists,
   ],
@@ -33,6 +37,10 @@ router.post(
   ],
   login
 );
+
+router.use(protect);
+
+router.get('/renew', renewToken);
 
 module.exports = {
   authRouter: router,

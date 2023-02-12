@@ -10,7 +10,11 @@ const {
   updateRepair,
   deleteRepair,
 } = require('../controllers/repairs.controllers');
-const { protect } = require('../middlewares/auth.middleware');
+const {
+  protect,
+  restricTo,
+  protectAccountOwner,
+} = require('../middlewares/auth.middleware');
 const { validRepairExists } = require('../middlewares/repair.middleware');
 const { validateFields } = require('../middlewares/validateField.middleware');
 
@@ -28,6 +32,8 @@ router.get('', findAllRepairs);
 // !el controlador de productos que se llama findRepairById
 router.get('/:id', validRepairExists, findRepairById);
 
+router.use(protect);
+
 // !Esta ruta me va a crear un un producto, esta ruta viene
 // !del archivo servidor que tiene un path repairs y este ruta se dirige hacia
 // !el controlador de productos que se llama createRepair
@@ -36,11 +42,11 @@ router.post(
   [
     check('date', 'Date is require').not().isEmpty(),
     check('motorsNumber', 'MotorsNumber is require').not().isEmpty(),
+    check('motorsNumber', 'MotorsNumber must be a number').isNumeric(),
     check('description', 'Description is require').not().isEmpty(),
     validateFields,
-    protect,
+    restricTo('employee'),
   ],
-
   createRepair
 );
 
@@ -48,13 +54,25 @@ router.post(
 // !por el path es decir por los parametros de la url, esta ruta viene
 // !del archivo servidor que tiene un path repairs y este ruta se dirige hacia
 // !el controlador de productos que se llama updateRepair
-router.patch('/:id', validRepairExists, updateRepair);
+router.patch(
+  '/:id',
+  validRepairExists,
+  restricTo('employee'),
+  //protectAccountOwner,
+  updateRepair
+);
 
 // !Esta ruta me va a actualizar un producto dando un id, este id se lo especifico
 // !por el path es decir por los parametros de la url, esta ruta viene
 // !del archivo servidor que tiene un path repairs y este ruta se dirige hacia
 // !el controlador de productos que se llama deleteRepair
-router.delete('/:id', validRepairExists, deleteRepair);
+router.delete(
+  '/:id',
+  validRepairExists,
+  restricTo('employee'),
+  //protectAccountOwner,
+  deleteRepair
+);
 
 // !EXPORTAMOS CREANDO UNA VARIABLE DANDOLE EL VALOR DE ROUTER, VARIABLE CREADA ARRIBA
 module.exports = {
