@@ -1,6 +1,7 @@
 // !importamos el modelo
 const catchAsync = require('../helpers/catchAsync');
 const Repair = require('../models/repairs.model');
+const User = require('../models/user.model');
 
 // !ACÁ CREAMOS LOS METODOS QUE USAREMOS TANTO PARA PEDIR, ENVIAR
 // !EDITAR O ELIMINAR INFORMACIÓN, METODOS QUE EXPORTAREMOS A LAS
@@ -14,6 +15,12 @@ exports.findAllRepairs = catchAsync(async (req, res, next) => {
     where: {
       status: 'pending',
     },
+    include: [
+      {
+        model: User,
+        attributes: ['name', 'email'],
+      },
+    ],
   });
 
   // !3. Y ENVIAMOS LA RESPUESTA AL CLIENTE
